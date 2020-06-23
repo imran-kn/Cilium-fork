@@ -101,6 +101,94 @@ message ContainerPort {
   optional string hostIP = 5;
 }
 
+// ContainerState holds a possible state of container.
+// Only one of its members may be specified.
+// If none of them is specified, the default one is ContainerStateWaiting.
+message ContainerState {
+  // Details about a waiting container
+  // +optional
+  optional ContainerStateWaiting waiting = 1;
+
+  // Details about a running container
+  // +optional
+  optional ContainerStateRunning running = 2;
+
+  // Details about a terminated container
+  // +optional
+  optional ContainerStateTerminated terminated = 3;
+}
+
+// ContainerStateRunning is a running state of a container.
+message ContainerStateRunning {
+  // Time at which the container was last (re-)started
+  // +optional
+  optional github.com.cilium.cilium.pkg.k8s.slim.k8s.apis.meta.v1.Time startedAt = 1;
+}
+
+// ContainerStateTerminated is a terminated state of a container.
+message ContainerStateTerminated {
+  // Exit status from the last termination of the container
+  optional int32 exitCode = 1;
+
+  // Signal from the last termination of the container
+  // +optional
+  optional int32 signal = 2;
+
+  // (brief) reason from the last termination of the container
+  // +optional
+  optional string reason = 3;
+
+  // Message regarding the last termination of the container
+  // +optional
+  optional string message = 4;
+
+  // Time at which previous execution of the container started
+  // +optional
+  optional github.com.cilium.cilium.pkg.k8s.slim.k8s.apis.meta.v1.Time startedAt = 5;
+
+  // Time at which the container last terminated
+  // +optional
+  optional github.com.cilium.cilium.pkg.k8s.slim.k8s.apis.meta.v1.Time finishedAt = 6;
+
+  // Container's ID in the format 'docker://<container_id>'
+  // +optional
+  optional string containerID = 7;
+}
+
+// ContainerStateWaiting is a waiting state of a container.
+message ContainerStateWaiting {
+  // (brief) reason the container is not yet running.
+  // +optional
+  optional string reason = 1;
+
+  // Message regarding why the container is not yet running.
+  // +optional
+  optional string message = 2;
+}
+
+// ContainerStatus contains details for the current status of this container.
+message ContainerStatus {
+  // This must be a DNS_LABEL. Each container in a pod must have a unique name.
+  // Cannot be updated.
+  optional string name = 1;
+
+  // Details about the container's current condition.
+  // +optional
+  optional ContainerState state = 2;
+
+  // The image the container is running.
+  // More info: https://kubernetes.io/docs/concepts/containers/images
+  // TODO(dchen1107): Which image the container is running with?
+  optional string image = 6;
+
+  // ImageID of the container's image.
+  optional string imageID = 7;
+
+  // Container's ID in the format 'docker://<container_id>'.
+  // +optional
+  optional string containerID = 8;
+}
+
 // EndpointAddress is a tuple that describes single IP address.
 message EndpointAddress {
   // The IP of this endpoint.
@@ -420,6 +508,12 @@ message PodStatus {
   // This is before the Kubelet pulled the container image(s) for the pod.
   // +optional
   optional github.com.cilium.cilium.pkg.k8s.slim.k8s.apis.meta.v1.Time startTime = 7;
+
+  // The list has one entry per container in the manifest. Each entry is currently the output
+  // of `docker inspect`.
+  // More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#pod-and-container-status
+  // +optional
+  repeated ContainerStatus containerStatuses = 8;
 }
 
 // Service is a named abstraction of software service (for example, mysql) consisting of local port
