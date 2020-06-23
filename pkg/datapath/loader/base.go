@@ -229,28 +229,23 @@ func (l *Loader) Reinitialize(ctx context.Context, o datapath.BaseProgramOwner, 
 				return err
 			}
 		}
-
-		if option.Config.Tunnel != option.TunnelDisabled {
-			args[initArgMode] = option.Config.Tunnel
-		} else if option.Config.DatapathMode == datapathOption.DatapathModeIpvlan {
-			args[initArgMode] = "ipvlan"
-		} else {
-			args[initArgMode] = "direct"
-		}
-
 		args[initArgDevices] = strings.Join(option.Config.Devices, ";")
+	} else if option.Config.IsFlannelMasterDeviceSet() {
+		args[initArgDevices] = option.Config.FlannelMasterDevice
 	} else {
-		args[initArgMode] = option.Config.Tunnel
 		args[initArgDevices] = "<nil>"
-
-		if option.Config.IsFlannelMasterDeviceSet() {
-			args[initArgMode] = "flannel"
-			args[initArgDevices] = option.Config.FlannelMasterDevice
-		}
 	}
 
 	if option.Config.EnableEndpointRoutes == true {
 		args[initArgMode] = "routed"
+	} else if option.Config.IsFlannelMasterDeviceSet() {
+		args[initArgMode] = "flannel"
+	} else if option.Config.Tunnel != option.TunnelDisabled {
+		args[initArgMode] = option.Config.Tunnel
+	} else if option.Config.DatapathMode == datapathOption.DatapathModeIpvlan {
+		args[initArgMode] = "ipvlan"
+	} else {
+		args[initArgMode] = "direct"
 	}
 
 	if option.Config.EnableNodePort {
