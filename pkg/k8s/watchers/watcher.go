@@ -786,6 +786,8 @@ func (k *K8sWatcher) GetStore(name string) cache.Store {
 		return k.networkpolicyStore
 	case "namespace":
 		return k.namespaceStore
+	case "pod":
+		return k.podStore
 	default:
 		return nil
 	}
